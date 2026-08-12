@@ -364,6 +364,7 @@ input[type=file]{display:none}
       <div class="kpi" style="--kpi-c:var(--green);--kpi-bg:#e8ffea"><div class="kpi-top"><div class="kpi-icon">✅</div><div class="kpi-label">已备案</div></div><div class="kpi-value" id="fund-filed">--</div><div class="kpi-sub">备案完成</div></div>
       <div class="kpi" style="--kpi-c:var(--orange);--kpi-bg:#fff3e8"><div class="kpi-top"><div class="kpi-icon">🗓</div><div class="kpi-label">上会议题</div></div><div class="kpi-value" id="topic-count">--</div><div class="kpi-sub">本月议题</div></div>
       <div class="kpi" style="--kpi-c:var(--purple);--kpi-bg:#f5e8ff"><div class="kpi-top"><div class="kpi-icon">💳</div><div class="kpi-label">基金总规模</div></div><div class="kpi-value" id="fund-scale">--</div><div class="kpi-sub">在管基金合计</div></div>
+      <div class="kpi" style="--kpi-c:var(--cyan);--kpi-bg:#e6fffb"><div class="kpi-top"><div class="kpi-icon">💰</div><div class="kpi-label">累计实缴</div></div><div class="kpi-value" id="fund-paidin">--</div><div class="kpi-sub">已实缴到账</div></div>
       <div class="kpi" style="--kpi-c:var(--red);--kpi-bg:#ffece8"><div class="kpi-top"><div class="kpi-icon">📌</div><div class="kpi-label">待办提醒</div></div><div class="kpi-value" id="fund-todo">--</div><div class="kpi-sub">流程中事项</div></div>
     </div>
 
@@ -405,6 +406,21 @@ input[type=file]{display:none}
       <div class="panel">
         <div class="panel-header"><div class="panel-title">基金规模分布</div><div class="panel-tools"><button class="zoom-btn" onclick="zoomCard(this)" title="放大查看"><svg viewBox="0 0 24 24"><path d="M4 4h6v2H6v4H4V4zm10 0h6v6h-2V6h-4V4zM4 14h2v4h4v2H4v-6zm14 0h2v6h-6v-2h4v-4z"/></svg></button></div></div>
         <div id="chart-fund-scale" class="chart"></div>
+      </div>
+    </div>
+
+    <div class="grid grid-3">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">总规模 vs 总实缴</div><div class="panel-tools"><button class="zoom-btn" onclick="zoomCard(this)" title="放大查看"><svg viewBox="0 0 24 24"><path d="M4 4h6v2H6v4H4V4zm10 0h6v6h-2V6h-4V4zM4 14h2v4h4v2H4v-6zm14 0h2v6h-6v-2h4v-4z"/></svg></button></div></div>
+        <div id="chart-fund-scale-paidin" class="chart-sm"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">基金状态分布</div><div class="panel-tools"><button class="zoom-btn" onclick="zoomCard(this)" title="放大查看"><svg viewBox="0 0 24 24"><path d="M4 4h6v2H6v4H4V4zm10 0h6v6h-2V6h-4V4zM4 14h2v4h4v2H4v-6zm14 0h2v6h-6v-2h4v-4z"/></svg></button></div></div>
+        <div id="chart-fund-status" class="chart-sm"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">投决机制分布</div><div class="panel-tools"><button class="zoom-btn" onclick="zoomCard(this)" title="放大查看"><svg viewBox="0 0 24 24"><path d="M4 4h6v2H6v4H4V4zm10 0h6v6h-2V6h-4V4zM4 14h2v4h4v2H4v-6zm14 0h2v6h-6v-2h4v-4z"/></svg></button></div></div>
+        <div id="chart-fund-decision" class="chart-sm"></div>
       </div>
     </div>
 
@@ -797,6 +813,7 @@ function renderFunds(){
   $('fund-filed').innerHTML = esc(funds.filter(function(x){return /备案完成|已备案|备案$|正常/.test(x.status||'')}).length);
   $('topic-count').innerHTML = esc(topics.length);
   $('fund-scale').innerHTML = fmtMoney(funds.reduce(function(s,x){return s+(parseFloat(x.scale)||0)},0));
+  $('fund-paidin').innerHTML = fmtMoney(funds.reduce(function(s,x){return s+(parseFloat(x.paidin)||0)},0));
   $('fund-todo').innerHTML = esc(funds.filter(function(x){return /筹备|进行|待办|备案中/.test(x.status||'')}).length + topics.filter(function(t){return /待办|进行/.test(t.status||'')}).length);
 
   if(!$('fund-filter-status').dataset.built){
@@ -815,6 +832,20 @@ function renderFunds(){
 
   // 基金规模柱状图
   renderBar('chart-fund-scale', topBy(funds,'scale',10, 'name'), '基金规模(万元)');
+
+  // 总规模 vs 总实缴（分组柱状图，取规模前8）
+  var scTop = funds.slice().sort(function(a,b){return (parseFloat(b.scale)||0)-(parseFloat(a.scale)||0)}).slice(0,8);
+  var spNames = scTop.map(function(x){return shortName(x.name)});
+  renderGroupBar('chart-fund-scale-paidin', spNames, [
+    {name:'总规模', data:scTop.map(function(x){return parseFloat(x.scale)||0}), color:'#3370ff'},
+    {name:'总实缴', data:scTop.map(function(x){return parseFloat(x.paidin)||0}), color:'#00b42a'}
+  ], '万元');
+
+  // 基金状态分布
+  renderPie('chart-fund-status', countBy(funds,'status'));
+
+  // 投决机制分布（按关键词归类）
+  renderPie('chart-fund-decision', decisionBy(funds));
 
   // 月度趋势
   var m = DATA.monthly;
@@ -992,6 +1023,23 @@ function emptyChart(id){
   if(!el) return;
   if(CHARTS[id]){ CHARTS[id].dispose(); CHARTS[id] = null; }
   el.innerHTML = '<div class="empty" style="display:flex;align-items:center;justify-content:center;height:100%"><div class="em-icon">📊</div>暂无数据</div>';
+}
+function shortName(n){
+  return String(n||'--').replace(/（有限合伙）|股权投资合伙企业|合伙企业（有限合伙）|创业投资基金|股权投资基金/g,'').slice(0,10);
+}
+function decisionBy(funds){
+  var m = {};
+  funds.forEach(function(x){
+    var d = String(x.decision||'--');
+    var k;
+    if(/未设|待定|--/.test(d)) k = '待定/未设';
+    else if(/全体一致|一致同意|全体同意/.test(d)) k = '全体一致通过';
+    else if(/4\/5|四分之五|4名及以上/.test(d)) k = '4/5多数通过';
+    else if(/3名及以上|3名及/.test(d)) k = '3/5多数通过';
+    else k = '其他机制';
+    m[k] = m[k] || 0; m[k]++;
+  });
+  return Object.keys(m).map(function(k){return {name:k, value:m[k]}}).sort(function(a,b){return b.value-a.value});
 }
 function makeChartOpt(xData, series, unit, yType){
   return { color: COLORS, tooltip:{trigger:'axis',textStyle:{color:'#1f2329',fontFamily:'Microsoft YaHei'},backgroundColor:'#fff',borderColor:'#e5e6e8'},
