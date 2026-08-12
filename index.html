@@ -44,9 +44,10 @@ body{background:var(--bg);color:var(--text);font-family:'Microsoft YaHei','微�
 /* 面板 */
 .grid{display:grid;gap:12px;margin-bottom:12px}
 .grid-2{grid-template-columns:1fr 1fr}
+.grid-3{grid-template-columns:1fr 1fr 1fr}
 .grid-1-2{grid-template-columns:2fr 1fr}
 .grid-1-3{grid-template-columns:1.4fr 1fr 1fr}
-@media(max-width:1100px){.grid-2,.grid-1-2,.grid-1-3{grid-template-columns:1fr}}
+@media(max-width:1100px){.grid-2,.grid-3,.grid-1-2,.grid-1-3{grid-template-columns:1fr}}
 .panel{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px 18px;min-height:100px}
 .panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .panel-title{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
@@ -203,7 +204,6 @@ input[type=file]{display:none}
   <!-- 视图切换 -->
   <div class="view-tabs">
     <button class="view-tab active" onclick="switchView('overview',this)">📊 项目投资总览 <span class="card-count" id="tab-proj">0</span></button>
-    <button class="view-tab" onclick="switchView('board',this)">🗂 项目看板 <span class="card-count" id="tab-board">0</span></button>
     <button class="view-tab" onclick="switchView('exits',this)">🚪 退出安排看板 <span class="card-count" id="tab-exit">0</span></button>
     <button class="view-tab" onclick="switchView('funds',this)">🏦 基金运营监控 <span class="card-count" id="tab-fund">0</span></button>
   </div>
@@ -227,6 +227,32 @@ input[type=file]{display:none}
       <div class="panel">
         <div class="panel-header"><div class="panel-title">投资额排名</div><div class="panel-tools"><button class="zoom-btn" onclick="zoomCard(this)" title="放大查看"><svg viewBox="0 0 24 24"><path d="M4 4h6v2H6v4H4V4zm10 0h6v6h-2V6h-4V4zM4 14h2v4h4v2H4v-6zm14 0h2v6h-6v-2h4v-4z"/></svg></button></div></div>
         <div id="chart-invest" class="chart"></div>
+      </div>
+    </div>
+
+    <div class="grid grid-3">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">项目阶段分布</div><div class="panel-tools"><button class="zoom-btn" onclick="zoomCard(this)" title="放大查看"><svg viewBox="0 0 24 24"><path d="M4 4h6v2H6v4H4V4zm10 0h6v6h-2V6h-4V4zM4 14h2v4h4v2H4v-6zm14 0h2v6h-6v-2h4v-4z"/></svg></button></div></div>
+        <div id="chart-stage" class="chart-sm"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">所属基金分布（金额）</div><div class="panel-tools"><button class="zoom-btn" onclick="zoomCard(this)" title="放大查看"><svg viewBox="0 0 24 24"><path d="M4 4h6v2H6v4H4V4zm10 0h6v6h-2V6h-4V4zM4 14h2v4h4v2H4v-6zm14 0h2v6h-6v-2h4v-4z"/></svg></button></div></div>
+        <div id="chart-fund" class="chart-sm"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">项目来源分布</div><div class="panel-tools"><button class="zoom-btn" onclick="zoomCard(this)" title="放大查看"><svg viewBox="0 0 24 24"><path d="M4 4h6v2H6v4H4V4zm10 0h6v6h-2V6h-4V4zM4 14h2v4h4v2H4v-6zm14 0h2v6h-6v-2h4v-4z"/></svg></button></div></div>
+        <div id="chart-source" class="chart-sm"></div>
+      </div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">投前 vs 现有估值对比</div><div class="panel-tools"><button class="zoom-btn" onclick="zoomCard(this)" title="放大查看"><svg viewBox="0 0 24 24"><path d="M4 4h6v2H6v4H4V4zm10 0h6v6h-2V6h-4V4zM4 14h2v4h4v2H4v-6zm14 0h2v6h-6v-2h4v-4z"/></svg></button></div></div>
+        <div id="chart-valuation" class="chart"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">持股比例分布</div><div class="panel-tools"><button class="zoom-btn" onclick="zoomCard(this)" title="放大查看"><svg viewBox="0 0 24 24"><path d="M4 4h6v2H6v4H4V4zm10 0h6v6h-2V6h-4V4zM4 14h2v4h4v2H4v-6zm14 0h2v6h-6v-2h4v-4z"/></svg></button></div></div>
+        <div id="chart-stake" class="chart"></div>
       </div>
     </div>
 
@@ -404,36 +430,6 @@ input[type=file]{display:none}
     </div>
   </div>
 
-  <!-- ====== 视图：项目看板 ====== -->
-  <div class="view" id="view-board">
-    <div class="kpi-grid">
-      <div class="kpi" style="--kpi-c:var(--blue);--kpi-bg:#e8f3ff"><div class="kpi-top"><div class="kpi-icon">🗂</div><div class="kpi-label">项目总数</div></div><div class="kpi-value" id="board-kpi-total">--</div><div class="kpi-sub">全部分组项目</div></div>
-      <div class="kpi" style="--kpi-c:var(--cyan);--kpi-bg:#e6fffb"><div class="kpi-top"><div class="kpi-icon">🗃</div><div class="kpi-label">分组数</div></div><div class="kpi-value" id="board-kpi-groups">--</div><div class="kpi-sub" id="board-kpi-groups-sub">当前分组字段</div></div>
-      <div class="kpi" style="--kpi-c:var(--green);--kpi-bg:#e8ffea"><div class="kpi-top"><div class="kpi-icon">💰</div><div class="kpi-label">总投资额</div></div><div class="kpi-value" id="board-kpi-amount">--</div><div class="kpi-sub">分组内项目合计</div></div>
-      <div class="kpi" style="--kpi-c:var(--orange);--kpi-bg:#fff3e8"><div class="kpi-top"><div class="kpi-icon">🎯</div><div class="kpi-label">最大分组</div></div><div class="kpi-value" id="board-kpi-max" style="font-size:20px">--</div><div class="kpi-sub" id="board-kpi-max-sub">项目最多的分组</div></div>
-      <div class="kpi" style="--kpi-c:var(--purple);--kpi-bg:#f5e8ff"><div class="kpi-top"><div class="kpi-icon">📅</div><div class="kpi-label">最近投决会</div></div><div class="kpi-value" id="board-kpi-date" style="font-size:20px">--</div><div class="kpi-sub">最近一次投决会议时间</div></div>
-    </div>
-
-    <div class="fs-card">
-      <div class="fs-toolbar">
-        <div class="fs-toolbar-left"><span class="fs-view-name"><span class="vi">▦</span>项目看板 · 分组视图</span></div>
-        <div class="fs-toolbar-right">
-          <label style="font-size:12px;color:var(--muted2)">分组字段</label>
-          <select class="fs-tool-select" id="board-group" onchange="renderBoard()">
-            <option value="status">项目阶段</option>
-            <option value="fund">所属基金</option>
-            <option value="industry">所属行业</option>
-            <option value="city">所在地</option>
-          </select>
-          <input type="text" class="fs-search" id="board-search" placeholder="🔍 检索项目" oninput="renderBoard()">
-          <button class="zoom-btn" onclick="zoomCard(this)" title="放大查看"><svg viewBox="0 0 24 24"><path d="M4 4h6v2H6v4H4V4zm10 0h6v6h-2V6h-4V4zM4 14h2v4h4v2H4v-6zm14 0h2v6h-6v-2h4v-4z"/></svg></button>
-        </div>
-      </div>
-      <div class="board-stats" id="board-stats"></div>
-      <div class="board-scroll"><div class="board" id="board"></div></div>
-    </div>
-  </div>
-
 </div>
 
 <!-- 放大遮罩 -->
@@ -565,81 +561,6 @@ function closeZoom(ev){
   setTimeout(function(){ window.dispatchEvent(new Event('resize')) }, 80);
 }
 
-// ====== 项目看板 ======
-function boardField(){
-  var k = $('board-group') ? $('board-group').value : 'status';
-  var label = { status:'项目阶段', fund:'所属基金', industry:'所属行业', city:'所在地' }[k] || '分组';
-  return { key:k, label:label };
-}
-function renderBoard(){
-  var b = DATA.business;
-  var projects = b.projects || [];
-  $('tab-board').textContent = projects.length;
-  var kw = ($('board-search') ? $('board-search').value : '').trim().toLowerCase();
-  var rows = projects.filter(function(p){
-    if(kw){
-      var hay = [p.name,p.industry,p.city,p.fund,p.status,p.source].join(' ').toLowerCase();
-      if(hay.indexOf(kw) < 0) return false;
-    }
-    return true;
-  });
-  var f = boardField();
-  var groups = {};
-  rows.forEach(function(p){
-    var g = p[f.key] || '未分组';
-    (groups[g] = groups[g] || []).push(p);
-  });
-  var keys = Object.keys(groups).sort(function(a,b){ return groups[b].length - groups[a].length; });
-
-  // KPI
-  $('board-kpi-total').innerHTML = esc(rows.length);
-  $('board-kpi-groups').innerHTML = esc(keys.length);
-  $('board-kpi-groups-sub').textContent = '按 ' + f.label + ' 分组';
-  var total = rows.reduce(function(s,p){ return s + (parseFloat(p.amount)||0) }, 0);
-  $('board-kpi-amount').innerHTML = fmtMoney(total);
-  if(keys.length){
-    var mx = groups[keys[0]].length;
-    var mxKey = keys.filter(function(k){ return groups[k].length === mx; })[0];
-    $('board-kpi-max').innerHTML = esc(mxKey.length > 8 ? mxKey.slice(0,8)+'…' : mxKey);
-    $('board-kpi-max-sub').textContent = mx + ' 个项目 · 按 ' + f.label;
-  }
-  // 最近投决会
-  var dates = rows.map(function(p){ return String(p.invest_date||'').trim(); }).filter(Boolean).sort();
-  var d = dates[dates.length-1] || '--';
-  $('board-kpi-date').innerHTML = esc(d.length > 10 ? d.slice(0,10) : d);
-  $('board-stats').innerHTML =
-    '<span>共 <b>' + esc(rows.length) + '</b> 个项目 · <b>' + esc(keys.length) + '</b> 个分组（按 ' + esc(f.label) + '）</span>' +
-    '<span>总投资额 <b>' + fmtMoney(total) + '</b></span>' +
-    (kw ? '<span>检索: <b>'+esc(kw)+'</b></span>' : '');
-
-  // 列
-  if(!keys.length){
-    $('board').innerHTML = '<div class="empty" style="width:100%"><div class="em-icon">🗂</div>暂无项目数据</div>';
-    return;
-  }
-  $('board').innerHTML = keys.map(function(k){
-    var list = groups[k];
-    return '<div class="board-col">'+
-      '<div class="board-col-head"><span>'+esc(k)+'</span><span class="board-col-count">'+list.length+'</span></div>'+
-      '<div class="board-col-body">'+ list.map(function(p){
-        return '<div class="board-card">'+
-          '<div class="bc-top"><strong>'+esc(p.name)+'</strong><span class="tag '+tagOf(p.status)+'">'+statusLabel(p.status)+'</span></div>'+
-          '<div class="bc-meta">'+esc(p.industry||'--')+' · '+esc(p.city||'--')+' · '+esc(p.fund||'--')+'</div>'+
-          '<div class="bc-rows">'+
-            '<div><span>投资金额</span><b>'+fmtMoney(p.amount)+'</b></div>'+
-            '<div><span>投前估值</span><b>'+fmtMoney(p.pre_valuation)+'</b></div>'+
-            '<div><span>现有估值</span><b>'+fmtMoney(p.cur_valuation)+'</b></div>'+
-            '<div><span>持股比例</span><b>'+fmtPct(p.stake)+'</b></div>'+
-            '<div><span>预期回报</span><b>'+(p.expected_return!=null && p.expected_return!=='' ? esc(p.expected_return)+'%' : '--')+'</b></div>'+
-            '<div><span>投决会</span><b>'+esc(p.invest_date||'--')+'</b></div>'+
-          '</div>'+
-          (p.intro ? '<div class="bc-intro">'+esc(p.intro)+'</div>' : '')+
-        '</div>';
-      }).join('') +'</div>'+
-    '</div>';
-  }).join('');
-}
-
 // ====== 刷新全部 ======
 function refreshAll(){
   var d = EMBED_DATA;
@@ -650,7 +571,7 @@ function refreshAll(){
 }
 
 // ====== 渲染 ======
-function renderAll(){ renderOverview(); renderExits(); renderFunds(); bindSorters(); renderBoard(); }
+function renderAll(){ renderOverview(); renderExits(); renderFunds(); bindSorters(); }
 
 function renderOverview(){
   var b = DATA.business;
@@ -674,6 +595,33 @@ function renderOverview(){
   renderPie('chart-industry', groupBy(projects,'industry','amount'), '投资额(万)');
   renderBar('chart-invest', topBy(projects,'amount',8), '投资额(万元)');
   renderPie('chart-city', groupBy(projects,'city','amount'), '投资额(万)');
+
+  // 项目阶段分布（项目数）
+  renderPie('chart-stage', countBy(projects,'status'), '项目数');
+  // 所属基金分布（金额）
+  renderPie('chart-fund', groupBy(projects,'fund','amount'), '投资额(万)');
+  // 项目来源分布（项目数）
+  renderPie('chart-source', countBy(projects,'source'), '项目数');
+  // 投前 vs 现有估值对比（横向条形，仅取有估值数据项目）
+  var valData = projects.filter(function(p){ return (parseFloat(p.pre_valuation)||0)>0 || (parseFloat(p.cur_valuation)||0)>0; });
+  if(valData.length){
+    var vn = valData.map(function(p){ return p.name; });
+    var vPre = valData.map(function(p){ return parseFloat(p.pre_valuation)||null; });
+    var vCur = valData.map(function(p){ return parseFloat(p.cur_valuation)||null; });
+    renderGroupBar('chart-valuation', vn, [
+      {name:'投前估值', data:vPre, color:'#86909c'},
+      {name:'现有估值', data:vCur, color:'#3370ff'}
+    ], '估值(亿)');
+  }else{
+    emptyChart('chart-valuation');
+  }
+  // 持股比例分布
+  var stakeData = projects.filter(function(p){ return (parseFloat(p.stake)||0)>0; });
+  if(stakeData.length){
+    renderBar('chart-stake', topBy(stakeData,'stake',10,'name'), '持股比例(%)');
+  }else{
+    emptyChart('chart-stake');
+  }
 
   // 阶段筛选下拉（去重填充一次）
   if(!$('proj-filter-status').dataset.built){
@@ -960,6 +908,15 @@ function bindSorters(){
 }
 
 // ====== 图表辅助 ======
+function countBy(list, key){
+  var m = {};
+  list.forEach(function(x){
+    var k = x[key] || '未分类';
+    m[k] = m[k] || 0;
+    m[k]++;
+  });
+  return Object.keys(m).map(function(k){return {name:k, value:m[k]}}).sort(function(a,b){return b.value-a.value});
+}
 function groupBy(list, key, val){
   var m = {};
   list.forEach(function(x){
@@ -996,6 +953,29 @@ function renderBar(id, top, unit){
       name:'',type:'bar',data:top.values.reverse(),barWidth:18,
       itemStyle:{color:new echarts.graphic.LinearGradient(0,0,1,0,[{offset:0,color:'#3370ff'},{offset:1,color:'#0fc6c2'}]),borderRadius:[0,6,6,0]}
   }], unit, 'value'));
+}
+function renderGroupBar(id, xData, seriesList, unit){
+  var el = $(id);
+  if(!xData.length){ el.innerHTML = '<div class="empty" style="display:flex;align-items:center;justify-content:center;height:100%"><div class="em-icon">📊</div>暂无数据</div>'; return; }
+  if(CHARTS[id]) CHARTS[id].dispose();
+  var chart = echarts.init(el);
+  CHARTS[id] = chart;
+  var series = seriesList.map(function(s){
+    return { name:s.name, type:'bar', data:s.data, barWidth:14,
+      itemStyle:{ color:s.color, borderRadius:[3,3,0,0] } };
+  });
+  chart.setOption({ color: COLORS, tooltip:{trigger:'axis',textStyle:{color:'#1f2329',fontFamily:'Microsoft YaHei'},backgroundColor:'#fff',borderColor:'#e5e6e8'},
+    grid:{left:70,right:24,top:34,bottom:60},
+    legend:{top:0,textStyle:{color:'#4e5969'},type:'scroll'},
+    xAxis:{type:'category',data:xData,axisLine:{lineStyle:{color:'#c9cdd4'}},axisLabel:{color:'#4e5969',fontSize:11,rotate:20,interval:0},axisTick:{show:false}},
+    yAxis:{type:'value',axisLine:{show:false},splitLine:{lineStyle:{color:'#eef0f2'}},axisLabel:{color:'#4e5969',fontSize:11}},
+    series:series });
+}
+function emptyChart(id){
+  var el = $(id);
+  if(!el) return;
+  if(CHARTS[id]){ CHARTS[id].dispose(); CHARTS[id] = null; }
+  el.innerHTML = '<div class="empty" style="display:flex;align-items:center;justify-content:center;height:100%"><div class="em-icon">📊</div>暂无数据</div>';
 }
 function makeChartOpt(xData, series, unit, yType){
   return { color: COLORS, tooltip:{trigger:'axis',textStyle:{color:'#1f2329',fontFamily:'Microsoft YaHei'},backgroundColor:'#fff',borderColor:'#e5e6e8'},
