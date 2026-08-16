@@ -363,6 +363,17 @@ input[type=file]{display:none}
         <div id="chart-exit-trigger" class="chart-sm"></div>
       </div>
     </div>
+
+    <div class="grid grid-2">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">退出时间分布</div><div class="panel-tools"><span class="panel-right">按退出期限年份归类</span><button class="zoom-btn" onclick="zoomCard(this)" title="放大查看"><svg viewBox="0 0 24 24"><path d="M4 4h6v2H6v4H4V4zm10 0h6v6h-2V6h-4V4zM4 14h2v4h4v2H4v-6zm14 0h2v6h-6v-2h4v-4z"/></svg></button></div></div>
+        <div id="chart-exit-time" class="chart-sm"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">退出路径分布</div><div class="panel-tools"><span class="panel-right">按主要退出路径归类</span><button class="zoom-btn" onclick="zoomCard(this)" title="放大查看"><svg viewBox="0 0 24 24"><path d="M4 4h6v2H6v4H4V4zm10 0h6v6h-2V6h-4V4zM4 14h2v4h4v2H4v-6zm14 0h2v6h-6v-2h4v-4z"/></svg></button></div></div>
+        <div id="chart-exit-path" class="chart-sm"></div>
+      </div>
+    </div>
   </div>
 
   <!-- ====== 视图3：基金运营 ====== -->
@@ -821,6 +832,29 @@ function renderExits(){
     else trig['其他']++;
   });
   renderPie('chart-exit-trigger', Object.keys(trig).filter(function(k){return trig[k]>0}).map(function(k){return {name:k,value:trig[k]}}), '项目数');
+
+  // 退出时间分布（按 deadline 年份归类）
+  var tm = {};
+  (projects||[]).forEach(function(p){
+    var m = String(p.deadline||'').match(/^(\d{4})/);
+    var k = m ? (m[1]+'年') : '未定';
+    tm[k] = tm[k]||0; tm[k]++;
+  });
+  var tArr = Object.keys(tm).map(function(k){return {name:k,value:tm[k]}})
+    .sort(function(a,b){ var na = a.name==='未定'?9999:parseInt(a.name); var nb = b.name==='未定'?9999:parseInt(b.name); return na-nb; });
+  renderBar('chart-exit-time', {names:tArr.map(function(x){return x.name}), values:tArr.map(function(x){return x.value})}, '项目数');
+
+  // 退出路径分布（按主要退出路径归类）
+  var path = {'IPO上市':0,'换股/发行股份收购':0,'股权回购':0,'二级市场减持':0,'其他':0};
+  (projects||[]).forEach(function(p){
+    var s = p.arrangement||'';
+    if(/IPO|上市/.test(s)) path['IPO上市']++;
+    else if(/发行股份|换股|收购/.test(s)) path['换股/发行股份收购']++;
+    else if(/回购/.test(s)) path['股权回购']++;
+    else if(/减持|二级市场|大宗交易/.test(s)) path['二级市场减持']++;
+    else path['其他']++;
+  });
+  renderPie('chart-exit-path', Object.keys(path).map(function(k){return {name:k,value:path[k]}}), '项目数');
 }
 
 var EXIT_META = { company:'text', price:'text' };
